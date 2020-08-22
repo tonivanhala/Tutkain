@@ -111,9 +111,20 @@ class Client(object):
     def recv_loop(self):
         try:
             while not self.stop_event.is_set():
-                item = bencode.read(self.buffer)
-                log.debug({'event': 'socket/recv', 'item': item})
-                self.handle(item)
+                try:
+                    item = bencode.read(self.buffer)
+                    log.debug({'event': 'socket/recv', 'item': item})
+                    self.handle(item)
+                except bencode.NoDataError:
+                    self.recvq.put({'value': ':tutkain/disconnected\n'})
+                    break
+                except BaseException as e:
+                    log.error({
+                        'event': 'error',
+                        'exception': e
+                    })
+
+                    break
         except OSError as e:
             log.error({
                 'event': 'error',

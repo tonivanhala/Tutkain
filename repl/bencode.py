@@ -70,11 +70,17 @@ def read_int(b):
     return int(read_until(b, b'e'))
 
 
+class NoDataError(Exception):
+    pass
+
+
 def read(b):
     """Read bencodes values from a BufferedReader into Python values."""
     first_byte = b.read(1)
 
-    if first_byte == b'e':
+    if not first_byte:
+        raise NoDataError()
+    elif first_byte == b'e':
         return None
     elif first_byte == b'd':
         return read_dict(b)
